@@ -1,0 +1,35 @@
+<dados>
+	<viewport>
+		
+		<vpmin x="10" y="10" />
+		<vpmax x="630" y="470" />
+	</viewport>
+	
+	<window>
+		<wmin x="0.0" y="0.0" />
+		<wmax x="10.0" y="10.0" />
+	</window>
+
+	<ponto x="0.0" y="368.0" />
+	<ponto x="124.0" y="276.0" />
+	<ponto x="248.0" y="184.0" />
+
+	<reta>
+		<ponto x="124.0" y="368.0" />
+		<ponto x="248.0" y="276.0" />
+	</reta>
+
+	<reta>
+		<ponto x="248.0" y="276.0" />
+		<ponto x="124.0" y="184.0" />
+	</reta>
+	
+	<poligono>
+		<ponto x="62.0" y="414.0" />
+		<ponto x="62.0" y="368.0" />
+		<ponto x="124.0" y="368.0" />
+		<ponto x="124.0" y="414.0" />
+		
+	</poligono>
+
+</dados>
