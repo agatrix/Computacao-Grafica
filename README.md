@@ -1,0 +1,1 @@
+This is a project from college that aims to explore the [computer graphics](https://en.wikipedia.org/wiki/Computer_graphics) capabilities. To do so, we used the [Qt for Python](https://wiki.qt.io/Qt_for_Python) framework.
