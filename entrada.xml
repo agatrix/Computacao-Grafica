@@ -3,8 +3,8 @@
 <dados>
 	<viewport>
 		<!-- viewport para uma janela de visualização de 620x460 com margem de  10pixels (area total de 640x480)-->
-		<vpmin x="10" y="10"/>
-		<vpmax x="630" y="470"/>
+		<vpmin x="0" y="0"/>
+		<vpmax x="620" y="460"/>
 	</viewport>
 	
 	<window>
