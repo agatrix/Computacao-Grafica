@@ -8,12 +8,12 @@ const int height = 600;
 // Posições e dimensões das barras
 float barWidth = 20.0f;
 float barHeight = 100.0f;
-float bar1Y = height / 2 - barHeight / 2;
-float bar2Y = height / 2 - barHeight / 2;
+float bar1Y = (float)height / 2 - barHeight / 2;
+float bar2Y = (float)height / 2 - barHeight / 2;
 
 // Posição e velocidade da bola
-float ballX = width / 2;
-float ballY = height / 2;
+float ballX = (float)width / 2;
+float ballY = (float)height / 2;
 float ballSize = 20.0f;
 
 // Velocidades
@@ -29,7 +29,7 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Desenha o placar
-    glRasterPos2f(width / 2 - 50, height - 50);
+    glRasterPos2f((float)width / 2 - 50, height - 50);
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '0' + score1);
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ' ');
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '-');
