@@ -1,5 +1,6 @@
 #include <GL/glut.h>
 #include <cmath>
+#include <cstring>
 
 // Tamanho da janela
 const int width = 800;
@@ -34,6 +35,10 @@ bool downPressed = false;
 bool up2Pressed = false;
 bool down2Pressed = false;
 
+// Estado do jogo
+bool gameOver = false;
+bool gamePaused = false;
+int winner = 0; // 0: none, 1: player1, 2: player2
 
 // Alternar a direção inicial da bola
 bool ballDirectionUp = true;
@@ -58,9 +63,31 @@ void drawBall(float x, float y, float size) {
     }
     glEnd();
 }
+
+// Função para exibir mensagens de texto
+void drawText(const char* text, float x, float y, void* font) {
+    glRasterPos2f(x, y);
+    for (const char* c = text; *c != '\0'; c++) {
+        glutBitmapCharacter(font, *c);
+    }
+}
+
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
 
+    if (gameOver) {
+        // Desenha a mensagem de vitória
+        if (winner == 1) {
+            drawText("Player 1 Wins!", width / 2 - 70, height / 2, GLUT_BITMAP_HELVETICA_18);
+        } else if (winner == 2) {
+            drawText("Player 2 Wins!", width / 2 - 70, height / 2, GLUT_BITMAP_HELVETICA_18);
+        }
+        drawText("Press 'R' to Restart", width / 2 - 100, height / 2 - 30, GLUT_BITMAP_HELVETICA_18);
+    } else if (gamePaused) {
+        // Desenha a mensagem de pausa
+        drawText("Game Paused", width / 2 - 60, height / 2, GLUT_BITMAP_HELVETICA_18);
+        drawText("Press SPACE to Resume", width / 2 - 90, height / 2 - 30, GLUT_BITMAP_HELVETICA_18);
+    } else {
         // Desenha o placar
         glRasterPos2f(width / 2 - 50, height - 50);
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '0' + score1);
@@ -213,7 +240,9 @@ void handleSpecialKeysUp(int key, int x, int y) {
 
 // Função para evitar o redimensionamento da janela
 void reshape(int w, int h) {
-    glutReshapeWindow(width, height);
+    if (w != width || h != height) {
+        glutReshapeWindow(width, height);
+    }
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(0.0, width, 0.0, height);
