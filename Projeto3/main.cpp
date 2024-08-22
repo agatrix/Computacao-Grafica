@@ -8,12 +8,12 @@ const int height = 600;
 // Posições e dimensões das barras
 float barWidth = 20.0f;
 float barHeight = 100.0f;
-float bar1Y = (float)height / 2 - barHeight / 2;
-float bar2Y = (float)height / 2 - barHeight / 2;
+float bar1Y = height / 2 - barHeight / 2;
+float bar2Y = height / 2 - barHeight / 2;
 
 // Posição e velocidade da bola
-float ballX = (float)width / 2;
-float ballY = (float)height / 2;
+float ballX = width / 2;
+float ballY = height / 2;
 float ballSize = 20.0f;
 
 // Velocidades
@@ -25,18 +25,48 @@ float ballYSpeed = 5.0f;
 int score1 = 0;
 int score2 = 0;
 
+// Função para desenhar uma barra
+void drawBar(float x, float y) {
+    glBegin(GL_QUADS);
+    glVertex2f(x, y);
+    glVertex2f(x + barWidth, y);
+    glVertex2f(x + barWidth, y + barHeight);
+    glVertex2f(x, y + barHeight);
+    glEnd();
+}
+
+// Função para desenhar a bola
+void drawBall(float x, float y, float size) {
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(x, y);
+    for (int i = 0; i <= 360; i += 30) {
+        float angle = i * 3.14159f / 180.0f;
+        glVertex2f(x + cos(angle) * size, y + sin(angle) * size);
+    }
+    glEnd();
+}
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Desenha o placar
-    glRasterPos2f((float)width / 2 - 50, height - 50);
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '0' + score1);
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ' ');
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '-');
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ' ');
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '0' + score2);
+        // Desenha o placar
+        glRasterPos2f(width / 2 - 50, height - 50);
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '0' + score1);
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ' ');
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '-');
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ' ');
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '0' + score2);
 
-    // Espaço para desenhar as barras e a bola
+        // Desenha as barras
+        glColor3f(1.0f, 0.0f, 0.0f); // Vermelho para a barra do jogador 1
+        drawBar(20.0f, bar1Y);
+
+        glColor3f(0.0f, 0.0f, 1.0f); // Azul para a barra do jogador 2
+        drawBar(width - barWidth - 20.0f, bar2Y);
+
+        // Desenha a bola
+        glColor3f(0.0f, 1.0f, 0.0f); // Verde para a bola
+        drawBall(ballX, ballY, ballSize / 2);
+    }
 
     glutSwapBuffers();
 }
@@ -67,18 +97,16 @@ void reshape(int w, int h) {
     glutReshapeWindow(width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    // aqui a origem do sistema de coordenadas é colocada na parte inferior à esquerda
-    gluOrtho2D(0.0, width, 0.0, height); 
+    gluOrtho2D(0.0, width, 0.0, height);
     glutPostRedisplay();
 }
 
-void Init(int argc, char** argv)
-{
+void Init(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(width, height);
     glutCreateWindow("TP3 - Jogo Pong");
-
+    glClearColor(0.0, 0.0, 0.0, 1.0); // Cor de fundo preta
 }
 
 int main(int argc, char** argv) {
