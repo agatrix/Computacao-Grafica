@@ -111,7 +111,29 @@ void display() {
     glutSwapBuffers();
 }
 
+void resetGame() {
+    // Reinicializa as variáveis do jogo
+    score1 = 0;
+    score2 = 0;
+    ballX = width / 2;
+    ballY = height / 2;
+    ballXSpeed = initialBallXSpeed;
+    ballYSpeed = ballDirectionUp ? initialBallYSpeed : -initialBallYSpeed;
+    ballDirectionUp = !ballDirectionUp;
+    bar1Y = height / 2 - barHeight / 2;
+    bar2Y = height / 2 - barHeight / 2;
+    gameOver = false;
+    gamePaused = false;
+    winner = 0;
+}
+
 void update(int value) {
+    if (gameOver || gamePaused) {
+        glutPostRedisplay();
+        glutTimerFunc(16, update, 0); // Continue chamando update para manter o display
+        return;
+    }
+
     // Movimentação da bola
     ballX += ballXSpeed;
     ballY += ballYSpeed;
