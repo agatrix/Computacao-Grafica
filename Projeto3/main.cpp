@@ -27,7 +27,7 @@ float ballXSpeed = 5.0f;
 float ballYSpeed = 5.0f;
 const float initialBallXSpeed = 5.0f;
 const float initialBallYSpeed = 5.0f;
-const float speedIncreaseRate = 0.05f; // Taxa de aumento de velocidade
+const float speedIncreaseRate = 0.01f; // Taxa de aumento de velocidade
 
 // Velocidades
 float barSpeed = 15.0f;
