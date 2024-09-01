@@ -6,7 +6,7 @@
 std::chrono::time_point<std::chrono::steady_clock> startTime;
 std::chrono::seconds accumulatedTime(0);     
 
-enum GameState { MENU, GAME, PAUSE, GAME_OVER };
+enum GameState { MENU, GAME };
 GameState currentState = MENU;
 
 // Tamanho da janela
@@ -16,18 +16,18 @@ const int height = 600;
 // Posições e dimensões das barras
 float barWidth = 20.0f;
 float barHeight = 100.0f;
-float bar1Y = height / 2 - barHeight / 2;
-float bar2Y = height / 2 - barHeight / 2;
+float bar1Y = (float)height / 2 - barHeight / 2;
+float bar2Y = (float)height / 2 - barHeight / 2;
 
 // Posição e velocidade da bola
-float ballX = width / 2;
-float ballY = height / 2;
+float ballX = (float)width / 2;
+float ballY = (float)height / 2;
 float ballSize = 20.0f;
 float ballXSpeed = 5.0f;
 float ballYSpeed = 5.0f;
 const float initialBallXSpeed = 5.0f;
 const float initialBallYSpeed = 5.0f;
-const float speedIncreaseRate = 0.05f; // Taxa de aumento de velocidade
+const float speedIncreaseRate = 0.01f; // Taxa de aumento de velocidade
 
 // Velocidades
 float barSpeed = 15.0f;
@@ -81,28 +81,28 @@ void drawText(const char* text, float x, float y, void* font) {
 }
 
 void drawMenu() {
-    drawText("PONG GAME",width / 2 - 100, height / 2 + 50, GLUT_BITMAP_HELVETICA_18);
-    drawText("Press 'S' to Start the Game",width / 2 - 120, height / 2, GLUT_BITMAP_HELVETICA_18);
-    drawText("Press 'Q' to Quit", width / 2 - 120, height / 2 - 50, GLUT_BITMAP_HELVETICA_18);
+    drawText("PONG GAME",(float)width / 2 - 100, (float)height / 2 + 50, GLUT_BITMAP_HELVETICA_18);
+    drawText("Press 'S' to Start the Game",(float)width / 2 - 120, (float)height / 2, GLUT_BITMAP_HELVETICA_18);
+    drawText("Press 'Q' to Quit", (float)width / 2 - 120, (float)height / 2 - 50, GLUT_BITMAP_HELVETICA_18);
 }
 
 void drawGame(){
     if (gameOver) {
         // Desenha a mensagem de vitória
         if (winner == 1) {
-            drawText("Player 1 Wins!", width / 2 - 70, height / 2, GLUT_BITMAP_HELVETICA_18);
+            drawText("Player 1 Wins!", (float)width / 2 - 70, (float)height / 2, GLUT_BITMAP_HELVETICA_18);
         } else if (winner == 2) {
-            drawText("Player 2 Wins!", width / 2 - 70, height / 2, GLUT_BITMAP_HELVETICA_18);
+            drawText("Player 2 Wins!", (float)width / 2 - 70, (float)height / 2, GLUT_BITMAP_HELVETICA_18);
         }
-        drawText("Press 'R' to Restart", width / 2 - 100, height / 2 - 30, GLUT_BITMAP_HELVETICA_18);
-        drawText("Press 'M' to Menu", width / 2 - 100, height / 2 - 50, GLUT_BITMAP_HELVETICA_18);
+        drawText("Press 'R' to Restart", (float)width / 2 - 100, (float)height / 2 - 30, GLUT_BITMAP_HELVETICA_18);
+        drawText("Press 'M' to Menu", (float)width / 2 - 100, (float)height / 2 - 50, GLUT_BITMAP_HELVETICA_18);
     } else if (gamePaused) {
         // Desenha a mensagem de pausa
-        drawText("Game Paused", width / 2 - 60, height / 2, GLUT_BITMAP_HELVETICA_18);
-        drawText("Press SPACE to Resume", width / 2 - 90, height / 2 - 30, GLUT_BITMAP_HELVETICA_18);
+        drawText("Game Paused", (float)width / 2 - 60, (float)height / 2, GLUT_BITMAP_HELVETICA_18);
+        drawText("Press SPACE to Resume", (float)width / 2 - 90, (float)height / 2 - 30, GLUT_BITMAP_HELVETICA_18);
     } else {
         // Desenha o placar
-        glRasterPos2f(width / 2 - 50, height - 50);
+        glRasterPos2f((float)width / 2 - 50, height - 50);
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '0' + score1);
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ' ');
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '-');
@@ -122,7 +122,7 @@ void drawGame(){
             minutos = elapsedTime.count() / 60;
             segundos = elapsedTime.count() % 60;
         }
-        glRasterPos2f(width / 2 - 50, height - 30);
+        glRasterPos2f((float)width / 2 - 50, height - 30);
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '0' + (minutos / 10));
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '0' + (minutos % 10));
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ':');
@@ -160,13 +160,13 @@ void resetGame() {
     // Reinicializa as variáveis do jogo
     score1 = 0;
     score2 = 0;
-    ballX = width / 2;
-    ballY = height / 2;
+    ballX = (float)width / 2;
+    ballY = (float)height / 2;
     ballXSpeed = initialBallXSpeed;
     ballYSpeed = ballDirectionUp ? initialBallYSpeed : -initialBallYSpeed;
     ballDirectionUp = !ballDirectionUp;
-    bar1Y = height / 2 - barHeight / 2;
-    bar2Y = height / 2 - barHeight / 2;
+    bar1Y = (float)height / 2 - barHeight / 2;
+    bar2Y = (float)height / 2 - barHeight / 2;
     gameOver = false;
     gamePaused = false;
     winner = 0;
@@ -206,8 +206,8 @@ void update(int value) {
     // Verifica se a bola saiu do campo
     if (ballX < 0) {
         score2++;
-        ballX = width / 2;
-        ballY = height / 2;
+        ballX = (float)width / 2;
+        ballY = (float)height / 2;
         ballXSpeed = -initialBallXSpeed;
         ballYSpeed = ballDirectionUp ? initialBallYSpeed : -initialBallYSpeed;
         ballDirectionUp = !ballDirectionUp;
@@ -218,8 +218,8 @@ void update(int value) {
         }
     } else if (ballX > width) {
         score1++;
-        ballX = width / 2;
-        ballY = height / 2;
+        ballX = (float)width / 2;
+        ballY = (float)height / 2;
         ballXSpeed = initialBallXSpeed;
         ballYSpeed = ballDirectionUp ? initialBallYSpeed : -initialBallYSpeed;
         ballDirectionUp = !ballDirectionUp;
