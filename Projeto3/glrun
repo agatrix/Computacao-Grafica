@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Verifica se o nome do arquivo foi passado como argumento
+if [ -z "$1" ]; then
+  echo "$0: Error missing filename."
+  exit 1
+fi
+
+FILE_NAME=$1
+
+# Compilação e execução do arquivo
+g++ "$FILE_NAME" -lglut -lGLU -lGL && ./a.out
+
+# Apaga o arquivo a.out após a execução
+rm -f ./a.out
