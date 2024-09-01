@@ -6,7 +6,7 @@
 std::chrono::time_point<std::chrono::steady_clock> startTime;
 std::chrono::seconds accumulatedTime(0);     
 
-enum GameState { MENU, GAME, PAUSE, GAME_OVER };
+enum GameState { MENU, GAME };
 GameState currentState = MENU;
 
 // Tamanho da janela
