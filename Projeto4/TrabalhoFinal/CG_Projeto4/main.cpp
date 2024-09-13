@@ -52,7 +52,6 @@
 #define ESQUERDA_POSTERIOR 2
 #define DIREITA_POSTERIOR 3
 
-
 int window;
 int Width;
 int Height;
@@ -61,10 +60,6 @@ int Height;
 #define FEMUR 1
 #define CANELA 2
 #define PATA 3
-#define ZOOM_IN 1
-#define ZOOM_OUT 0
-#define MAX_ZOOM 50
-#define MIN_ZOOM 1
 // angulos[estagio][posicao][quadril/femur/canela/pata]
 float angulosCaminhada[6][4][4];
 float angulosTrote[6][4][4];
@@ -73,17 +68,6 @@ float anguloCabeca;
 float anguloTronco;
 float deslocamento = 0.0;
 float anguloRabo = 0.0;
-
-float cam_pos_x,cam_pos_y,cam_pos_z,
-      // ponto para o qual a c�mera est� apontada...
-      // o ponto(0,0,0) corresponde ao centro da base do rob�
-      lookAt_x,
-      lookAt_y,
-      lookAt_z;
-
-// controle do deslocamento do robo
-float walk_x,
-      walk_y;
 
 int estagio = 0;
 int passo = 0; // 0 - 10
@@ -101,8 +85,6 @@ int anguloPescocoSubindo = 1;
 float xCavalo = 0.0;
 float zCavalo = 1.5;
 
-// Variáveis para o movimento do cavalo
-float velocidadeCavalo = 0.1f; // Velocidade de movimento
 
 // Prototipo das funcoes
 void desenhaEsfera();
@@ -119,7 +101,19 @@ GLUquadricObj *params = gluNewQuadric();
 static float angle=0.0,ratio;
 static float x=0.0f,y=0.75f,z=5.0f;
 static float lx=0.0f,ly=0.0f,lz=-1.0f;
+float cam_pos_x,cam_pos_y,cam_pos_z,
+      // ponto para o qual a c�mera est� apontada...
+      // o ponto(0,0,0) corresponde ao centro da base do rob�
+      lookAt_x,
+      lookAt_y,
+      lookAt_z;
 
+// controle do deslocamento do robo
+float walk_x,
+      walk_y;
+      
+float anguloCam, zoom = 5.0f;
+//---------------------------------------------------------------------------
 void changeSize(int w, int h)
 {
   // Prevent a divide by zero, when window is too short
@@ -142,6 +136,7 @@ void changeSize(int w, int h)
   gluLookAt(x, y, z, x + lx,y + ly,z + lz,0.0f,1.0f,0.0f);
 }
 
+//---------------------------------------------------------------------------
 void desenhaArvore()
 {
   glColor3f(0.54,0.4,0.3);
@@ -152,27 +147,33 @@ void desenhaArvore()
   gluCylinder(params,0.8,0.0,2,15,2);
 
 }
-void updateCameraPosition()
+void updateCameraPosition(int i)
 {
-    // Definir a posição da câmera em relação ao cavalo
-    cam_pos_x = xCavalo - 5.0f * sin(anguloCavalo * M_PI / 180.0f);
-    cam_pos_z = zCavalo - 5.0f * cos(anguloCavalo * M_PI / 180.0f);
+    if(i==1){
+      // Atualiza a posição da câmera para girar em torno do cavalo
+      cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f);
+      cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f);
+      cam_pos_y = 1.0f; // Altura fixa da câmera
+    }else if(i==2){
+      // Atualiza a posição da câmera para girar em torno do cavalo
+      cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f);
+      cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f);
+      cam_pos_y = 1.0f; // Altura fixa da câmera
+    }
 
-    // Manter a câmera em uma altura fixa (ou pode ser ajustada se necessário)
-    cam_pos_y = 1.0f; // Altura da câmera
-
-    // Definir o ponto para onde a câmera olha (o cavalo)
+    // Define o ponto para onde a câmera está olhando
     lookAt_x = xCavalo;
-    lookAt_y = 0.945f; // Altura do ponto de visão (mesma do cavalo)
+    lookAt_y = 0.945f; // Altura do ponto de visão, igual à altura do cavalo
     lookAt_z = zCavalo;
     
-    // Atualizar a visualização da câmera
+    // Atualiza a visualização da câmera
     glLoadIdentity();
-    gluLookAt(cam_pos_x, cam_pos_y, cam_pos_z,  // Posição da câmera
-              lookAt_x, lookAt_y, lookAt_z,     // Ponto para onde a câmera olha (o cavalo)
-              0.0f, 1.0f, 0.0f);               // Vetor 'up'
-}
+    gluLookAt(cam_pos_x, cam_pos_y, cam_pos_z, // Posição da câmera
+              lookAt_x, lookAt_y, lookAt_z,  // Ponto para onde a câmera está olhando
+              0.0f, 1.0f, 0.0f);              // Vetor "up"
 
+}
+//---------------------------------------------------------------------------
 void initScene()
 {
   glEnable(GL_DEPTH_TEST);
@@ -183,17 +184,7 @@ void renderScene(void) {
   int i;
   int j;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpe a tela e o buffer
-
-    // Atualizar a posição da câmera a cada frame, conforme o cavalo se move
-    updateCameraPosition();
-
-    // Renderizar o cenário e o cavalo
-    glPushMatrix();
-        glTranslatef(xCavalo, 0.945, zCavalo);
-        glRotatef(anguloCavalo, 0, 1, 0);
-        desenhaCorpo(); // Desenha o cavalo
-    glPopMatrix();
-
+  //updateCameraPosition();
   GLfloat diffuseLight[] = { 1, 1, 1, 1};
   GLfloat ambientLight[] = { 1, 1, 1, 1};
   GLfloat specularLight[] = { 0.2, 0.3, 0.3, 1};
@@ -241,30 +232,7 @@ void renderScene(void) {
 
 
 }
-void animacao(){
-  float maiorAngulo = caminhando ? 20.0 : 15.0;
-  if(anguloPescoco > maiorAngulo || anguloPescoco < 0.0)
-    anguloPescocoSubindo = !anguloPescocoSubindo;
-  float incremento = caminhando ? 1.5 : 3.0;
-  anguloPescoco = anguloPescocoSubindo ? anguloPescoco + incremento : anguloPescoco - incremento;
-  if(passo < 10) {
-    caminhando ? passo +=2 : passo +=3;
-    if(estagio==0 || estagio==2)
-      deslocamentoYTronco += 0.01;
-    else if(estagio==1 || estagio==3)
-      deslocamentoYTronco -= 0.01;
-  } else {
-    passo = 0;
-    int estagioFinal = 5;
-    if(!caminhando)
-      estagioFinal = 3;
-    if(estagio < estagioFinal)
-      estagio++;
-    else
-      estagio = 0;
-  }
-}
-
+//---------------------------------------------------------------------------
 void processNormalKeys(unsigned char key, int x, int y)
 {
   switch(key){
@@ -272,70 +240,91 @@ void processNormalKeys(unsigned char key, int x, int y)
       exit(0);
       break;
     case 'w': {
-        animacao();
-        xCavalo += velocidadeCavalo ;
-        zCavalo += velocidadeCavalo ;
-      break;
-    }case 's': {
-        animacao();
-        xCavalo -= velocidadeCavalo ;
-        zCavalo -= velocidadeCavalo ;
+      float maiorAngulo = caminhando ? 20.0 : 15.0;
+      if(anguloPescoco > maiorAngulo || anguloPescoco < 0.0)
+        anguloPescocoSubindo = !anguloPescocoSubindo;
+      float incremento = caminhando ? 1.5 : 3.0;
+      anguloPescoco = anguloPescocoSubindo ? anguloPescoco + incremento : anguloPescoco - incremento;
+      if(passo < 10) {
+        caminhando ? passo +=2 : passo +=3;
+        if(estagio==0 || estagio==2)
+          deslocamentoYTronco += 0.01;
+        else if(estagio==1 || estagio==3)
+          deslocamentoYTronco -= 0.01;
+      } else {
+        passo = 0;
+        int estagioFinal = 5;
+        if(!caminhando)
+          estagioFinal = 3;
+        if(estagio < estagioFinal)
+          estagio++;
+        else
+          estagio = 0;
+      }
+      if(movimentarCavalo){
+        float deslocamento = caminhando ? 0.03 : 0.12;
+        float anguloGraus = anguloCavalo*(M_PI/180);
+        xCavalo += deslocamento*cos(anguloGraus);
+        zCavalo -= deslocamento*sin(anguloGraus);
+      }
+      updateCameraPosition(1);
       break;
     }
-    case ',':
+    case 'a':
       anguloCavalo += 5;
       break;
-    case '.':
+    case 'd':
       anguloCavalo -= 5;
       break;
-    case '<': // Mover o cavalo para trás
-        xCavalo -= velocidadeCavalo * sin(anguloCavalo * M_PI / 180.0f);
-        zCavalo -= velocidadeCavalo * cos(anguloCavalo * M_PI / 180.0f);
-        break;
-    case 'a': // Rotacionar o cavalo para a esquerda
-        anguloCavalo += 5.0f; // Ajuste do ângulo de rotação
-        if (anguloCavalo >= 360.0f)
-            anguloCavalo -= 360.0f;
-        break;
-    case 'd': // Rotacionar o cavalo para a direita
-        anguloCavalo -= 5.0f; // Ajuste do ângulo de rotação
-        if (anguloCavalo < 0.0f)
-            anguloCavalo += 360.0f;
-        break;
+    case ',':
+      anguloCam += 5;
+      updateCameraPosition(1);
+      break;
+    case '.':
+      anguloCam -= 5;
+      updateCameraPosition(1);
+      break;
+    case 'q':
+      zoom += 0.5f;
+      updateCameraPosition(2);
+      break;
+    case 'e':
+      if (zoom > 2.0f) //Colocamos um limite para não ultrapassar o cavalo
+        zoom -= 0.5f;
+      updateCameraPosition(2);
+      break;
+  }
+  renderScene();
+}
+//---------------------------------------------------------------------------
+
+void inputKey(int key, int x, int y) {
+
+  switch (key) {
+    case GLUT_KEY_F1:
+      deslocamentoYTronco = 0.0;
+      caminhando = !caminhando;
+      break;
+    case GLUT_KEY_F5:
+      glutFullScreen ( );
+      break;
+    case GLUT_KEY_F6:
+      glutReshapeWindow ( 640, 360 );
+      break;
+    case GLUT_KEY_F7:
+      iluminacao = !iluminacao;
+      break;
+    case GLUT_KEY_F8:
+      arvores = !arvores;
+      break;
+    case GLUT_KEY_F11:
+      movimentarCavalo = !movimentarCavalo;
+      break;
   }
   renderScene();
 }
 
-float distanciaCamera = 5.0f; // Distância da câmera ao cavalo
-float anguloCamera = 0.0f;    // Ângulo de rotação da câmera ao redor do cavalo
-
-void processSpecialKeys(int key, int x, int y)
-{
-    switch(key)
-    {
-        case GLUT_KEY_LEFT: // Girar a câmera ao redor do cavalo para a esquerda
-            anguloCamera -= 5.0f;
-            if (anguloCamera < 0.0f)
-                anguloCamera += 360.0f;
-            break;
-        case GLUT_KEY_RIGHT: // Girar a câmera ao redor do cavalo para a direita
-            anguloCamera += 5.0f;
-            if (anguloCamera >= 360.0f)
-                anguloCamera -= 360.0f;
-            break;
-        case GLUT_KEY_UP: // Aumentar a distância da câmera ao cavalo
-            distanciaCamera -= 0.5f;
-            if (distanciaCamera < 1.0f) // Evitar que a câmera chegue muito perto
-                distanciaCamera = 1.0f;
-            break;
-        case GLUT_KEY_DOWN: // Diminuir a distância da câmera ao cavalo
-            distanciaCamera += 0.5f;
-            break;
-    }
-    // Atualizar a cena após a mudança
-    renderScene();
-}
-
+//---------------------------------------------------------------------------
 int main(int argc, char **argv)
 {
   #ifdef BUILDER
@@ -350,8 +339,8 @@ int main(int argc, char **argv)
 
   initScene();
 
-   glutKeyboardFunc(processNormalKeys);
-//   glutSpecialFunc(inputKey);
+  glutKeyboardFunc(processNormalKeys);
+  glutSpecialFunc(inputKey);
 
   glutDisplayFunc(renderScene);
   glutReshapeFunc(changeSize);
