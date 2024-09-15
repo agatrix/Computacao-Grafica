@@ -115,6 +115,7 @@ float walk_x,
       walk_y;
       
 float anguloCam, zoom = 5.0f;
+float anguloY = 0.0f;  // Ângulo de inclinação vertical da câmera
 
 GLuint loadTexture(const char* path) {
     GLuint textureID;
@@ -188,19 +189,23 @@ void updateCameraPosition(int i)
 {
     if(i==1){
       // Atualiza a posição da câmera para girar em torno do cavalo
-      cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f);
-      cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f);
-      cam_pos_y = 1.0f; // Altura fixa da câmera
+      cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
+      cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
+      cam_pos_y = 1.0f+ zoom * sin(anguloY * M_PI / 180.0f);  // Ajuste a altura da câmera
     }else if(i==2){
-      // Atualiza a posição da câmera para girar em torno do cavalo
-      cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f);
-      cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f);
-      cam_pos_y = 1.0f; // Altura fixa da câmera
+      // Atualiza a posição dno eixo x e z
+      cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
+      cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
+      cam_pos_y = 1.0f+ zoom * sin(anguloY * M_PI / 180.0f);  // Ajuste a altura da câmera
+    }
+    else if(i==3){
+      cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
+      cam_pos_y = 1.0f + zoom * sin(anguloY * M_PI / 180.0f);  // Ajuste a altura da câmera
+      cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
     }
 
-    // Define o ponto para onde a câmera está olhando
     lookAt_x = xCavalo;
-    lookAt_y = 0.945f; // Altura do ponto de visão, igual à altura do cavalo
+    lookAt_y = 0.945f; // Altura do cavalo
     lookAt_z = zCavalo;
     
     // Atualiza a visualização da câmera
@@ -273,10 +278,13 @@ void renderScene(void) {
 void processNormalKeys(unsigned char key, int x, int y)
 {
   switch(key){
-    case 27:
+    case 27:  //Esc fecha
       exit(0);
       break;
-    case 'w': {
+    
+    //movimentação cavalo
+    case 'w': 
+    case 'W':{
       float maiorAngulo = caminhando ? 20.0 : 15.0;
       if(anguloPescoco > maiorAngulo || anguloPescoco < 0.0)
         anguloPescocoSubindo = !anguloPescocoSubindo;
@@ -307,59 +315,86 @@ void processNormalKeys(unsigned char key, int x, int y)
       updateCameraPosition(1);
       break;
     }
-    case 'a':
+    //Virar para a esquerda
+    case 'a': 
+    case 'A':
       anguloCavalo += 5;
       break;
+    //Virar para a direita
     case 'd':
+    case 'D':
       anguloCavalo -= 5;
       break;
+    
+    //Comandos Camera
+    //ZOOM - IN
+    case 'q':
+    case 'Q':
+    case '+':
+      zoom += 0.5f;
+      updateCameraPosition(2);
+      break;
+    //ZOOM - OUT
+    case 'e':
+    case 'E':
+    case '-':
+      if (zoom > 2.0f) //Colocamos um limite para não ultrapassar o cavalo
+        zoom -= 0.5f;
+      updateCameraPosition(2);
+      break;
+    //Girar camera esquerdda
     case ',':
       anguloCam += 5;
       updateCameraPosition(1);
       break;
+    //Girar camera direita
     case '.':
       anguloCam -= 5;
       updateCameraPosition(1);
       break;
-    case 'q':
-      zoom += 0.5f;
-      updateCameraPosition(2);
+  }
+  renderScene();
+}
+
+void teclasEspeciasi(int key, int x, int y) {
+
+  switch (key) {
+    //Comandos de Camera
+    //Girar camera esquerda
+    case GLUT_KEY_LEFT :
+      anguloCam += 5;
+      updateCameraPosition(1);
       break;
-    case 'e':
-      if (zoom > 2.0f) //Colocamos um limite para não ultrapassar o cavalo
-        zoom -= 0.5f;
-      updateCameraPosition(2);
+      break;
+    //Girar camera Direta
+    case GLUT_KEY_RIGHT :
+      anguloCam -= 5;
+      updateCameraPosition(1);
+      break;
+    // Girar a câmera para cima
+    case GLUT_KEY_UP :
+      anguloY += 5.0f;
+      if (anguloY == 90.0f) anguloY = 95.0f;   // Em 90 da um glitch, pulamos pra n ter essa piscada
+      if (anguloY > 180.0f) anguloY = 180.0f;  // Limitado para atravessar a não terrea
+      updateCameraPosition(3);
+      break;
+    // Girar a câmera para baixo
+    case GLUT_KEY_DOWN :
+      anguloY -= 5.0f;
+      if (anguloY == 90.0f) anguloY = 85.0f; 
+      if (anguloY < 0.0f) anguloY = 0.0f;  // Limitado para atravessar não terra
+      updateCameraPosition(3);
+      break;
+
+    //Casos codigo original
+    case GLUT_KEY_F1:
+      deslocamentoYTronco = 0.0;
+      caminhando = !caminhando;
       break;
   }
   renderScene();
 }
 //---------------------------------------------------------------------------
-
-void inputKey(int key, int x, int y) {
-
-  switch (key) {
-    case GLUT_KEY_F1:
-      deslocamentoYTronco = 0.0;
-      caminhando = !caminhando;
-      break;
-    case GLUT_KEY_F5:
-      glutFullScreen ( );
-      break;
-    case GLUT_KEY_F6:
-      glutReshapeWindow ( 640, 360 );
-      break;
-    case GLUT_KEY_F7:
-      iluminacao = !iluminacao;
-      break;
-    case GLUT_KEY_F8:
-      arvores = !arvores;
-      break;
-    case GLUT_KEY_F11:
-      movimentarCavalo = !movimentarCavalo;
-      break;
-  }
-  renderScene();
-}
 
 //---------------------------------------------------------------------------
 int main(int argc, char **argv)
@@ -377,7 +412,7 @@ int main(int argc, char **argv)
   initScene();
 
   glutKeyboardFunc(processNormalKeys);
-  glutSpecialFunc(inputKey);
+  glutSpecialFunc(teclasEspeciasi);
 
   glutDisplayFunc(renderScene);
   glutReshapeFunc(changeSize);
