@@ -176,6 +176,7 @@ void changeSize(int w, int h)
 void desenhaArvore()
 {
   static GLuint texturaID = loadTexture("madeiraTex.jpg");  
+  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
   glEnable(GL_TEXTURE_2D); 
   glBindTexture(GL_TEXTURE_2D, texturaID); 
   glColor3f(0.54,0.4,0.3); //A cor em cada objeto faz com que a textura aabsorva a cor
@@ -258,15 +259,12 @@ void renderScene(void) {
   static GLuint texturachao = loadTexture("gramaTex.jpg"); 
   glEnable(GL_TEXTURE_2D);  
   glBindTexture(GL_TEXTURE_2D, texturachao); 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  
   //Usamos o GL_NEAREST para dar uma sensação Pixelada
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   
   glPushMatrix();
-      glColor3f(0.05f, 0.25f, 0.05f);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glColor3f(0.05f, 0.25f, 0.05f);
     glBegin(GL_QUADS);
       glTexCoord2f(0.0f, 0.0f);glVertex3f(-100.0f, 0.1f, -100.0f);
       glTexCoord2f(1.0f, 0.0f);glVertex3f(-100.0f, 0.1f,  100.0f);
@@ -347,17 +345,17 @@ void processNormalKeys(unsigned char key, int x, int y)
       break;
     
     //Comandos Camera
-    //ZOOM - IN
+    //ZOOM - OUT
     case 'q':
     case 'Q':
-    case '+':
+    case '-':
       zoom += 0.5f;
       updateCameraPosition();
       break;
-    //ZOOM - OUT
+    //ZOOM - IN
     case 'e':
     case 'E':
-    case '-':
+    case '+':
       if (zoom > 2.0f) //Colocamos um limite para não ultrapassar o cavalo
         zoom -= 0.5f;
       updateCameraPosition();
