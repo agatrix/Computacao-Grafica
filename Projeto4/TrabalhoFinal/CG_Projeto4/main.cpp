@@ -6,11 +6,13 @@
   #include <float.h>
 #endif
 
-
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image/stb_image.h"
 #pragma argsused
 #include <stdlib.h>
 #include <GL/glut.h>
 #include <math.h>
+#include <iostream>
 
 #define ESCAPE 27
 #define TAMANHO_ESFERA 0.04
@@ -113,6 +115,41 @@ float walk_x,
       walk_y;
       
 float anguloCam, zoom = 5.0f;
+
+GLuint loadTexture(const char* path) {
+    GLuint textureID;
+    glGenTextures(1, &textureID);  // Gera um identificador para a textura
+    glBindTexture(GL_TEXTURE_2D, textureID);  // Vincula a textura
+
+    // Configura os parâmetros da textura
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Ou GL_CLAMP_TO_EDGE
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Ou GL_CLAMP_TO_EDGE
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Sem mipmaps
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Sem mipmaps
+
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
+    if (data) {
+        GLenum format;
+        if (nrChannels == 1)
+            format = GL_RED;
+        else if (nrChannels == 3)
+            format = GL_RGB;
+        else if (nrChannels == 4)
+            format = GL_RGBA;
+
+        // Carrega a textura na GPU
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        // Não gera mipmaps
+        // glGenerateMipmap(GL_TEXTURE_2D); // Comentado para não gerar mipmaps
+    } else {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);  // Libera a memória da imagem
+
+    return textureID;
+}
+
 //---------------------------------------------------------------------------
 void changeSize(int w, int h)
 {
@@ -477,54 +514,154 @@ void inicializaAngulos()
 //---------------------------------------------------------------------------
 void desenhaCabeca()
 {
+  static GLuint texturaID = loadTexture("brancotex.jpg");  // Certifique-se de fornecer o caminho correto para sua textura
+  glEnable(GL_TEXTURE_2D);  // Ativa a textura
+  glBindTexture(GL_TEXTURE_2D, texturaID);  // Vincula a textura
+
+    
   glPushMatrix();
   glRotatef(45-anguloPescoco, 0,0,1);
   glPushMatrix();
-  glScalef(LARG_PESCOCO,ALT_PESCOCO, COMP_PESCOCO);
-  glutSolidCube(0.5);
+  glScalef(LARG_PESCOCO/2,ALT_PESCOCO/2, COMP_PESCOCO/2);
+  //glutSolidCube(0.5);
+  // Definindo os vértices do paralelepípedo
+
+    glBegin(GL_QUADS);
+
+    // Face frontal
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+
+    // Face traseira
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    // Face lateral esquerda
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    // Face lateral direita
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
+
+    // Face superior
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    // Face inferior
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+
+    glEnd();
   glPopMatrix();
   glTranslatef(LARG_PESCOCO*0.19, -ALT_PESCOCO*0.4,0);
   glRotatef(anguloCabeca, 0,0,1);
-  glScalef(LARG_CABECA,ALT_CABECA, COMP_CABECA);
-  glutSolidCube(0.5);
+  glScalef(LARG_CABECA/2,ALT_CABECA/2, COMP_CABECA/2);
+  glBegin(GL_QUADS);
+
+    // Face frontal
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+
+    // Face traseira
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    // Face lateral esquerda
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    // Face lateral direita
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
+
+    // Face superior
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, 0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, 0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, 0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, 0.5f, -0.5f);
+
+    // Face inferior
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.5f, -0.5f, 0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5f, -0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+
+    glEnd();
   glPopMatrix();
+  glDisable(GL_TEXTURE_2D);
 }
 //---------------------------------------------------------------------------
 void desenhaRabo()
 {
+  static GLuint texturaID = loadTexture("brancotex.jpg");  // Certifique-se de fornecer o caminho correto para sua textura
+  glEnable(GL_TEXTURE_2D);  // Ativa a textura
+  glBindTexture(GL_TEXTURE_2D, texturaID);  // Vincula a textura
+
+    
   float angulo = caminhando ? 0.0 : 5.0;
   float angulo2 = caminhando ? passoRabo  : passoRabo/2;
 
   // primeiro segmento
-  glColor3f(0.6, 0.5, 0.3);
-  glutSolidSphere(TAMANHO_ESFERA/1.25,8,8);
-  glColor3f(1.0,0.8,0);
+  //glColor3f(0.6, 0.5, 0.3);
+  //glutSolidSphere(TAMANHO_ESFERA/1.25,8,8);
+  //Usamos a msm logica utilizada na construcao do tromco
+  GLfloat raio = TAMANHO_ESFERA/1.25;
+  GLint fatias = 8;  
+  GLint pilhas = 8;  
+
+  // Desenha a esfera com a função gluSphere
+  gluSphere(params, raio, fatias, pilhas);
+  //glColor3f(1.0,0.8,0);
   glRotatef(90-angulo2,0,1,0);
   glRotatef(-45+angulo,1,0,0);
   glTranslatef(0,0,-0.20);
   gluCylinder(params,0.020,0.03,0.20,15,2);
 
   // segundo segmento
-  glColor3f(0.6, 0.5, 0.3);
-  glutSolidSphere(TAMANHO_ESFERA/1.5,8,8);
-  glColor3f(1.0,0.8,0);
+  gluSphere(params, raio, fatias, pilhas);
   glRotatef(-angulo2*2,0,1,0);
   glRotatef(-24+angulo/2,1,0,0);
   glTranslatef(0,0,-0.15);
   gluCylinder(params,0.015,0.020,0.15,15,2);
 
   // terceiro segmento
-  glColor3f(0.6, 0.5, 0.3);
-  glutSolidSphere(TAMANHO_ESFERA/2,8,8);
+  gluSphere(params, raio, fatias, pilhas);
   glRotatef(-angulo2*3,0,1,0);
-  glColor3f(1.0,0.8,0);
+  //glColor3f(1.0,0.8,0);
   glTranslatef(0,0,-0.25);
   gluCylinder(params,0.0,0.015,0.25,15,2);
+  glDisable(GL_TEXTURE_2D);
 
 }
 //---------------------------------------------------------------------------
 void desenhaQuadril(int posicao)
 {
+  static GLuint texturaID = loadTexture("brancotex.jpg");  // Certifique-se de fornecer o caminho correto para sua textura
+  glEnable(GL_TEXTURE_2D);  // Ativa a textura
+  glBindTexture(GL_TEXTURE_2D, texturaID);  // Vincula a textura
+
+    
   glPushMatrix();
   glRotatef(pegaAngulo(posicao,QUADRIL),0,0,1);
   glTranslatef(0.0,-TAMANHO_ESFERA,0.0);
@@ -541,10 +678,18 @@ void desenhaQuadril(int posicao)
   desenhaEsfera();
   desenhaFemur(posicao);
   glPopMatrix();
+
+  glDisable(GL_TEXTURE_2D);
 }
 //---------------------------------------------------------------------------
 void desenhaFemur(int posicao)
 {
+  static GLuint texturaID = loadTexture("brancotex.jpg");  // Certifique-se de fornecer o caminho correto para sua textura
+  glEnable(GL_TEXTURE_2D);  // Ativa a textura
+  glBindTexture(GL_TEXTURE_2D, texturaID);  // Vincula a textura
+
+   
+
   glPushMatrix();
   glRotatef(pegaAngulo(posicao, FEMUR),0,0,1);
   glTranslatef(0.0,-TAMANHO_ESFERA,0.0);
@@ -561,10 +706,16 @@ void desenhaFemur(int posicao)
   desenhaEsfera();
   desenhaCanela(posicao);
   glPopMatrix();
+  glDisable(GL_TEXTURE_2D);
 }
 //---------------------------------------------------------------------------
 void desenhaCanela(int posicao)
 {
+  static GLuint texturaID = loadTexture("brancotex.jpg");  // Certifique-se de fornecer o caminho correto para sua textura
+  glEnable(GL_TEXTURE_2D);  // Ativa a textura
+  glBindTexture(GL_TEXTURE_2D, texturaID);  // Vincula a textura
+
+  
   glPushMatrix();
   glRotatef(pegaAngulo(posicao,CANELA),0,0,1);
   glTranslatef(0.0,-TAMANHO_ESFERA,0.0);
@@ -573,6 +724,7 @@ void desenhaCanela(int posicao)
   glScalef(LARG_CANELA,ALT_CANELA, COMP_CANELA);
 
   glRotatef(90,1,0,0);
+  
   gluCylinder(params,0.3,0.3,0.5,15,2);
 
 
@@ -582,46 +734,80 @@ void desenhaCanela(int posicao)
   desenhaEsfera();
   desenhaPata(posicao);
   glPopMatrix();
+  glDisable(GL_TEXTURE_2D);
 }
 //---------------------------------------------------------------------------
 void desenhaPata(int posicao)
 {
+  static GLuint texturaID = loadTexture("brancotex.jpg");  // Certifique-se de fornecer o caminho correto para sua textura
+  glEnable(GL_TEXTURE_2D);  // Ativa a textura
+  glBindTexture(GL_TEXTURE_2D, texturaID);  // Vincula a textura
+
+    
   glPushMatrix();
   glRotatef(pegaAngulo(posicao,PATA),0,0,1);
   glTranslatef(0.0,-TAMANHO_ESFERA,0.0);
   glTranslatef(0.0,-ALT_PATA*0.35,0.0);
   glScalef(BASE_PATA,ALT_PATA,BASE_PATA);
   glRotatef(-90,1,0,0);
-  glutSolidCone (0.5,0.6,8,6);
+  //glutSolidCone (0.5,0.6,8,6);
+  GLUquadric* quad = gluNewQuadric(); 
+  gluQuadricTexture(quad, GL_TRUE);
+  gluCylinder(quad, 0.5, 0.0, 0.6, 8, 6);
   glPopMatrix();
+  glDisable(GL_TEXTURE_2D);
 }
 //---------------------------------------------------------------------------
 void desenhaTronco()
 {
-  if(!caminhando)
-    glTranslatef(0.0,deslocamentoYTronco,0.0);
+  static GLuint texturaID = loadTexture("brancotex.jpg");  // Certifique-se de fornecer o caminho correto para sua textura
 
-  glPushMatrix();
-  glColor3f(0.6,0.4,0.1);
-  glPushMatrix();
-    glTranslatef(-LARG_TRONCO*0.2,0,0.0);
+    if (!caminhando)
+        glTranslatef(0.0, deslocamentoYTronco, 0.0);
+
+    // Ativar a textura
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texturaID);  
+
+
+    // Desenhar primeira parte do tronco com a textura
     glPushMatrix();
-      glScalef(1,ALT_TRONCO*1.5, 1);
-      glutSolidSphere(COMP_TRONCO*0.335,8,8);
-    glPopMatrix();
-    glScalef(LARG_TRONCO,ALT_TRONCO, COMP_TRONCO);
-    glRotatef(90,0,1,0);
-    gluCylinder(params,0.25,0.25,0.4,15,2);
-  glPopMatrix();
-  glPushMatrix();
-    glTranslatef(LARG_TRONCO*0.2,0,0.0);
-    glScalef(1,ALT_TRONCO*1.5, 0.75);
-    glutSolidSphere(COMP_TRONCO*0.335,8,8);
-  glPopMatrix();
+        glPushMatrix();
+            glTranslatef(-LARG_TRONCO * 0.2, 0, 0.0);
+            
+            // Configura textura para o quadrado (para esferas e cilindros)
+            gluQuadricTexture(params, GL_TRUE);
+            
+            glPushMatrix();
+                // Definir escala e desenhar a esfera
+                glScalef(1, ALT_TRONCO * 1.5, 1);
+                //Altereamos isso para poder ustilziar o GliuSphere
+                GLfloat raio = COMP_TRONCO * 0.335;
+                GLint fatias = 8;  
+                GLint pilhas = 8;  
 
-//  glutSolidCube(0.5);
-  glColor3f(0.6, 0.25, 0.1);
-  glPopMatrix();
+                // Desenha a esfera com a função gluSphere em vze de gluSoldiSphere
+                gluSphere(params, raio, fatias, pilhas);
+            glPopMatrix();
+            
+            // Escala e desenha o cilindro com textura
+            glScalef(LARG_TRONCO, ALT_TRONCO, COMP_TRONCO);
+            glRotatef(90, 0, 1, 0);
+            gluCylinder(params, 0.25, 0.25, 0.4, 15, 2);  // Desenho do cilindro
+        glPopMatrix();
+
+        // Desenhar a segunda parte com textura
+        glPushMatrix();
+            glTranslatef(LARG_TRONCO * 0.2, 0, 0.0);
+            glScalef(1, ALT_TRONCO * 1.5, 0.75);
+            // Desenha a esfera com a função gluSphere
+            gluSphere(params, raio, fatias, pilhas);
+            //glutSolidSphere(COMP_TRONCO * 0.335, 8, 8);  // Desenho da esfera
+        glPopMatrix();
+    glPopMatrix();
+
+    // Desabilitar a textura após desenhar o objeto
+    glDisable(GL_TEXTURE_2D);
 }
 //---------------------------------------------------------------------------
 void desenhaPerna(int posicao)
@@ -636,13 +822,26 @@ void desenhaPerna(int posicao)
 //---------------------------------------------------------------------------
 void desenhaEsfera()
 {
-  glColor3f(0.6, 0.5, 0.3);
-  glutSolidSphere(TAMANHO_ESFERA,8,8);
-  glColor3f(1.0,0.8,0);
+  static GLuint texturaID = loadTexture("brancotex.jpg");  // Certifique-se de fornecer o caminho correto para sua textura
+  glEnable(GL_TEXTURE_2D);  // Ativa a textura
+  glBindTexture(GL_TEXTURE_2D, texturaID);  // Vincula a textura
+
+  glPushMatrix();
+  glTranslatef(0.0, 0.0, 0.0);  // Ajuste a posição conforme necessário
+  gluQuadricTexture(params, GL_TRUE);  // Habilita a textura para o objeto
+  gluSphere(params, TAMANHO_ESFERA, 32, 32);  // Desenha a esfera
+  glPopMatrix();
+
+  glDisable(GL_TEXTURE_2D);  // Desativa a textura após desenhar
 }
 //---------------------------------------------------------------------------
 void desenhaCorpo()
 {
+  static GLuint texturaID = loadTexture("brancotex.jpg");  // Certifique-se de fornecer o caminho correto para sua textura
+  glEnable(GL_TEXTURE_2D);  // Ativa a textura
+  glBindTexture(GL_TEXTURE_2D, texturaID);  // Vincula a textura
+
+    
   desenhaTronco();
 
   glPushMatrix();
