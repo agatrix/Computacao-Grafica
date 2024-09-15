@@ -80,6 +80,7 @@ float anguloCavalo = 0.0;
 int passoRabo = 0;
 int passoRaboSubindo = 1;
 int iluminacao = 1;
+int iluminacaoFraca = 1;
 int arvores = 1;
 float anguloPescoco = 0.0;
 int anguloPescocoSubindo = 1;
@@ -103,30 +104,28 @@ GLUquadricObj *params = gluNewQuadric();
 static float angle=0.0,ratio;
 static float x=0.0f,y=0.75f,z=5.0f;
 static float lx=0.0f,ly=0.0f,lz=-1.0f;
+
+//Variaveis pra travar e controlar camera
 float cam_pos_x,cam_pos_y,cam_pos_z,
-      // ponto para o qual a c�mera est� apontada...
-      // o ponto(0,0,0) corresponde ao centro da base do rob�
       lookAt_x,
       lookAt_y,
       lookAt_z;
 
-// controle do deslocamento do robo
-float walk_x,
-      walk_y;
-      
+//variaveis de controle do angulo da camera
 float anguloCam, zoom = 5.0f;
 float anguloY = 0.0f;  // Ângulo de inclinação vertical da câmera
 
+//Funcao para carregar textura
 GLuint loadTexture(const char* path) {
     GLuint textureID;
     glGenTextures(1, &textureID);  // Gera um identificador para a textura
     glBindTexture(GL_TEXTURE_2D, textureID);  // Vincula a textura
 
     // Configura os parâmetros da textura
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Ou GL_CLAMP_TO_EDGE
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Ou GL_CLAMP_TO_EDGE
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Sem mipmaps
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Sem mipmaps
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); 
 
     int width, height, nrChannels;
     unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
@@ -139,12 +138,11 @@ GLuint loadTexture(const char* path) {
         else if (nrChannels == 4)
             format = GL_RGBA;
 
-        // Carrega a textura na GPU
+
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        // Não gera mipmaps
-        // glGenerateMipmap(GL_TEXTURE_2D); // Comentado para não gerar mipmaps
+
     } else {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Falha Textura" << std::endl;
     }
     stbi_image_free(data);  // Libera a memória da imagem
 
@@ -177,32 +175,24 @@ void changeSize(int w, int h)
 //---------------------------------------------------------------------------
 void desenhaArvore()
 {
-  glColor3f(0.54,0.4,0.3);
+  static GLuint texturaID = loadTexture("madeiraTex.jpg");  
+  glEnable(GL_TEXTURE_2D); 
+  glBindTexture(GL_TEXTURE_2D, texturaID); 
+  glColor3f(0.54,0.4,0.3); //A cor em cada objeto faz com que a textura aabsorva a cor
   glRotatef(-90,1,0,0);
   gluCylinder(params,0.2,0.2,2,15,2);
   glTranslatef(0,0,2);
   glColor3f(0.14,0.42,0.13);
   gluCylinder(params,0.8,0.0,2,15,2);
-
+  glDisable(GL_TEXTURE_2D);
 }
-void updateCameraPosition(int i)
+void updateCameraPosition()
 {
-    if(i==1){
-      // Atualiza a posição da câmera para girar em torno do cavalo
-      cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
-      cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
-      cam_pos_y = 1.0f+ zoom * sin(anguloY * M_PI / 180.0f);  // Ajuste a altura da câmera
-    }else if(i==2){
-      // Atualiza a posição dno eixo x e z
-      cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
-      cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
-      cam_pos_y = 1.0f+ zoom * sin(anguloY * M_PI / 180.0f);  // Ajuste a altura da câmera
-    }
-    else if(i==3){
-      cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
-      cam_pos_y = 1.0f + zoom * sin(anguloY * M_PI / 180.0f);  // Ajuste a altura da câmera
-      cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
-    }
+    // Atualiza a posição da câmera para girar em torno do cavalo
+    cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
+    cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
+    cam_pos_y = 1.0f + zoom * sin(anguloY * M_PI / 180.0f);  // Ajuste a altura da câmera
+
 
     lookAt_x = xCavalo;
     lookAt_y = 0.945f; // Altura do cavalo
@@ -227,33 +217,64 @@ void renderScene(void) {
   int j;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpe a tela e o buffer
   //updateCameraPosition();
-  GLfloat diffuseLight[] = { 1, 1, 1, 1};
-  GLfloat ambientLight[] = { 1, 1, 1, 1};
-  GLfloat specularLight[] = { 0.2, 0.3, 0.3, 1};
-  GLfloat lightPos[] = { 300.0f, 2000.0f, -20.0f, 1.0f };
-  if(iluminacao)
-    glEnable(GL_LIGHTING);
-  else
-    glDisable(GL_LIGHTING);
-  glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
-  glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
-  glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
-  glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_COLOR_MATERIAL);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, diffuseLight );
-  glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 50);
+  
+    GLfloat diffuseLight[] = { 1, 1, 1, 1};
+    GLfloat ambientLight[] = { 1, 1, 1, 1};
+    GLfloat specularLight[] = { 0.2, 0.3, 0.3, 1};
+    GLfloat lightPos[] = { 300.0f, 2000.0f, -20.0f, 1.0f }; // uma fonte pontual com uma posição fixa.
+    if(iluminacao)
+      glEnable(GL_LIGHTING);
+    else
+      glDisable(GL_LIGHTING);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    glEnable(GL_LIGHT0);
 
-  // deseha ch�o
+    GLfloat diffuseLight1[] = { 0.2f, 0.2f, 0.2f, 1.0f};
+    GLfloat ambientLight1[] = {0.2f, 0.2f, 0.2f, 1};
+    GLfloat specularLight1[] = { 0.1f, 0.1f, 0.1f, 1.0f};
+    GLfloat lightPos1[] = { 300.0f, 2000.0f, -20.0f, 1.0f }; // uma fonte pontual com uma posição fixa.
+    glLightfv(GL_LIGHT1, GL_AMBIENT, ambientLight1);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, specularLight1);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight1);
+    glLightfv(GL_LIGHT1, GL_POSITION, lightPos1);
+
+    glEnable(GL_COLOR_MATERIAL);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, diffuseLight );
+    glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 10);
+
+  if(iluminacaoFraca){
+    glEnable(GL_LIGHT0);
+    glDisable(GL_LIGHT1);
+  }else{
+    glEnable(GL_LIGHT1);
+    glDisable(GL_LIGHT0);
+  }
+  
+
+  // deseha chao
+  static GLuint texturachao = loadTexture("gramaTex.jpg"); 
+  glEnable(GL_TEXTURE_2D);  
+  glBindTexture(GL_TEXTURE_2D, texturachao); 
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); 
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  
+  //Usamos o GL_NEAREST para dar uma sensação Pixelada
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  
   glPushMatrix();
       glColor3f(0.05f, 0.25f, 0.05f);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glBegin(GL_QUADS);
-      glVertex3f(-100.0f, 0.1f, -100.0f);
-      glVertex3f(-100.0f, 0.1f,  100.0f);
-      glVertex3f( 100.0f, 0.1f,  100.0f);
-      glVertex3f( 100.0f, 0.1f, -100.0f);
+      glTexCoord2f(0.0f, 0.0f);glVertex3f(-100.0f, 0.1f, -100.0f);
+      glTexCoord2f(1.0f, 0.0f);glVertex3f(-100.0f, 0.1f,  100.0f);
+      glTexCoord2f(1.0f, 1.0f);glVertex3f( 100.0f, 0.1f,  100.0f);
+      glTexCoord2f(0.0f, 1.0f);glVertex3f( 100.0f, 0.1f, -100.0f);
     glEnd();
   glPopMatrix();
+  glDisable(GL_TEXTURE_2D);
 
   if(arvores) {
     // Desenha 64  �rvores
@@ -281,7 +302,6 @@ void processNormalKeys(unsigned char key, int x, int y)
     case 27:  //Esc fecha
       exit(0);
       break;
-    
     //movimentação cavalo
     case 'w': 
     case 'W':{
@@ -312,7 +332,7 @@ void processNormalKeys(unsigned char key, int x, int y)
         xCavalo += deslocamento*cos(anguloGraus);
         zCavalo -= deslocamento*sin(anguloGraus);
       }
-      updateCameraPosition(1);
+      updateCameraPosition();
       break;
     }
     //Virar para a esquerda
@@ -332,7 +352,7 @@ void processNormalKeys(unsigned char key, int x, int y)
     case 'Q':
     case '+':
       zoom += 0.5f;
-      updateCameraPosition(2);
+      updateCameraPosition();
       break;
     //ZOOM - OUT
     case 'e':
@@ -340,17 +360,17 @@ void processNormalKeys(unsigned char key, int x, int y)
     case '-':
       if (zoom > 2.0f) //Colocamos um limite para não ultrapassar o cavalo
         zoom -= 0.5f;
-      updateCameraPosition(2);
+      updateCameraPosition();
       break;
     //Girar camera esquerdda
     case ',':
       anguloCam += 5;
-      updateCameraPosition(1);
+      updateCameraPosition();
       break;
     //Girar camera direita
     case '.':
       anguloCam -= 5;
-      updateCameraPosition(1);
+      updateCameraPosition();
       break;
   }
   renderScene();
@@ -363,33 +383,42 @@ void teclasEspeciasi(int key, int x, int y) {
     //Girar camera esquerda
     case GLUT_KEY_LEFT :
       anguloCam += 5;
-      updateCameraPosition(1);
+      updateCameraPosition();
       break;
       break;
     //Girar camera Direta
     case GLUT_KEY_RIGHT :
       anguloCam -= 5;
-      updateCameraPosition(1);
+      updateCameraPosition();
       break;
     // Girar a câmera para cima
     case GLUT_KEY_UP :
       anguloY += 5.0f;
       if (anguloY == 90.0f) anguloY = 95.0f;   // Em 90 da um glitch, pulamos pra n ter essa piscada
       if (anguloY > 180.0f) anguloY = 180.0f;  // Limitado para atravessar a não terrea
-      updateCameraPosition(3);
+      updateCameraPosition();
       break;
     // Girar a câmera para baixo
     case GLUT_KEY_DOWN :
       anguloY -= 5.0f;
       if (anguloY == 90.0f) anguloY = 85.0f; 
       if (anguloY < 0.0f) anguloY = 0.0f;  // Limitado para atravessar não terra
-      updateCameraPosition(3);
+      updateCameraPosition();
       break;
 
     //Casos codigo original
     case GLUT_KEY_F1:
       deslocamentoYTronco = 0.0;
       caminhando = !caminhando;
+      break;
+    case GLUT_KEY_F7:
+      iluminacao = !iluminacao;
+      break;
+    case GLUT_KEY_F9:
+      arvores = !arvores;
+      break;
+    case GLUT_KEY_F8:
+      iluminacaoFraca = !iluminacaoFraca;
       break;
   }
   renderScene();
