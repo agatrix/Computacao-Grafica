@@ -112,7 +112,7 @@ float cam_pos_x,cam_pos_y,cam_pos_z,
       lookAt_z;
 
 //variaveis de controle do angulo da camera
-float anguloCam, zoom = 5.0f;
+float anguloCam, zoom = 4.0f;
 float anguloY = 0.0f;  // Ângulo de inclinação vertical da câmera
 
 //Funcao para carregar textura
@@ -187,11 +187,12 @@ void desenhaArvore()
   gluCylinder(params,0.8,0.0,2,15,2);
   glDisable(GL_TEXTURE_2D);
 }
+
 void updateCameraPosition()
 {
     // Atualiza a posição da câmera para girar em torno do cavalo
-    cam_pos_x = xCavalo - zoom * sin(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
-    cam_pos_z = zCavalo - zoom * cos(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
+    cam_pos_x = xCavalo + zoom * sin(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
+    cam_pos_z = zCavalo + zoom * cos(anguloCam * M_PI / 180.0f) * cos(anguloY * M_PI / 180.0f);
     cam_pos_y = 1.0f + zoom * sin(anguloY * M_PI / 180.0f);  // Ajuste a altura da câmera
 
 
