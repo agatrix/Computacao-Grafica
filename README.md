@@ -35,3 +35,16 @@ Developer docs for Mesa 23.2.1 or higher
 
 ### Executing
 To execute manually, just compile the `main.cpp` using the `-lglut -lGLU -lGL` flags, and run the output file.  To run it automatically, give the executable permission to `glrun` script and pass the `main.cpp` to it as argument, like: `./glrun main.cpp`.
+
+---
+
+## Project 4
+Inside the "Projeto4" folder, the main idea of this project was to complement the code of a horse in a plain, adding a more robust movimentation to it, along with textures and lighting, using [OpenGL](https://en.wikipedia.org/wiki/OpenGL).
+
+### Prerequisites
+Mesa OpenGL utility library version 9.0.2 or higher
+OpenGl Utility Toolkit 2.8.1 or higher
+Developer docs for Mesa 23.2.1 or higher
+
+### Executing
+First be sure that the stb_image folder is inside in the same directory as the `main.cpp` file, to execute it manually just compile the `main.cpp` file  using the `-lglut -lGLU -lGL` flags, and run the output file.  To run it automatically, give the executable permission to `glrun` script and pass the `main.cpp` to it as argument, like: `./glrun main.cpp`.
